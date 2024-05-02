@@ -1,0 +1,96 @@
+mosquitto_sub  -t GIOT-GW/UL/1C497BCE1BF5 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -d
+mosquitto_sub -t GIOT-GW/UL/1C497BCE1BE3 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -d
+mosquitto_sub -h 121.161.130.17 -t GIOT-GW/UL/1C497BCE1BE3 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -d
+mosquitto_sub -h 121.161.130.17 -t GIOT-GW/UL/1C497BB43D50 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -d
+mosquitto_sub -h 192.168.012.12 -t GIOT-GW/UL/1C497BCE1BD3 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -d
+
+mosquitto 시작할 때(관리자모드의 실행 창)
+mosquitto -c mosquitto.conf -v
+====================================================================================================================================
+MQTTS
+DL-report
+mosquitto_sub -d -h 192.168.10.6 -t  GIOT-GW/DL-report/000080029c8cd1ac -u lazyengineers -P lazyengineers -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt 
+mosquitto_sub -d -t  GIOT-GW/DL-report/00001c497bcab049 -u lazyengineers -P lazyengineers -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt 
+mosquitto_sub -d -h 192.168.82.44 -t GIOT-GW/DL-report/# -u lazyengineers -P lazyengineers -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt 
+mosquitto_sub -d -t GIOT-GW/DL-report/# -u lazyengineers -P lazyengineers -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt 
+
+data  수신할 때(관리자모드의 실행 창)
+mosquitto_sub -d -h 192.168.10.6 -t GIOT-GW/UL/5813D34049C2 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt
+mosquitto_sub -d -t GIOT-GW/UL/1C497BCE1BE1 -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt
+mosquitto_sub -d -h 192.168.82.44 -t GIOT-GW/UL/# -q 1 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt
+mosquitto_sub -d -t GIOT-GW/UL/# -q 1  -p 8883 --insecure --cafile certs\m2mqtt_srv.crt
+mosquitto_sub -d -t GIOT-GW/UL/# -q 1  -p 1883
+ 
+data  송신할 때(관리자모드의 실행 창)
+mosquitto_pub -d -h 192.168.82.44 -t GIOT-GW/DL/00001c497bcab079 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000010101000\",\"data\":\"0000051234567890\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"26\"}}]"
+mosquitto_pub -d -t GIOT-GW/DL/00001c497bcaaf46 -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000001\",\"data\":\"12340000\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"26\"}}]"
+
+아스키 짝수
+1) Class C, Unconfirmed
+mosquitto_pub -d -h 192.168.10.6 -t GIOT-GW/DL/000080029c8cd1ac -p 8883  --insecure --cafile certs\m2mqtt_srv.crt -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"000000001111000f\",\"data\":\"abcdef12\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"22\"}}]"
+1) Class C, confirmed
+mosquitto_pub -p 8883 -d -h 192.168.82.139  -t  GIOT-GW/DL/00001c497bcab079 --insecure --cafile certs\m2mqtt_srv.crt -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"00000000fe4a3e95\",\"data\":\"0000051234567890\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"26\"}}]" RX2
+2) Class A, Unconfirmed
+mosquitto_pub -d -h 104.155.21.63 -t GIOT-GW/DL/00001c497bb44bbc -p 8883  --insecure --cafile certs\m2mqtt_srv.crt  -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000010\",\"data\":\"1234\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"2\"}}]" RX2
+3) Class A, confirmed
+mosquitto_pub -d -h 104.155.21.63 -t GIOT-GW/DL/00001c497bb44bbc -p 8883  --insecure --cafile certs\m2mqtt_srv.crt  -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000020\",\"data\":\"1234\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"6\"}}]" RX2
+
+=======================================================================================================================================
+MQTT
+DL-report
+mosquitto_sub -d -h 192.168.10.6 -t  GIOT-GW/DL-report/000080029c8cd1ac -u lazyengineers -P lazyengineers -q 1 --insecure --cafile certs\m2mqtt_srv.crt
+mosquitto_sub -d -h 192.168.11.2 -t GIOT-GW/DL-report/# -u lazyengineers -P lazyengineers -q 1
+
+data  수신할 때(관리자모드의 실행 창)
+mosquitto_sub -d -p 8883 -h 121.161.130.17 -t GIOT-GW/UL/1C497BCE1BD9 -q 1
+mosquitto_sub -d -p 8883 -t GIOT-GW/UL/1C497BCE1BD9 -q 1
+
+data  송신할 때(관리자모드의 실행 창)
+mosquitto_pub -d -h 104.155.21.63 -t GIOT-GW/DL/00001c497bcaaf46 -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000001\",\"data\":\"0000051234567890\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"26\"}}]"  'Class C, confirmed
+mosquitto_pub -d  -t GIOT-GW/DL/00001c497bcaaf46 -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000001\",\"data\":\"12340000\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"26\"}}]"
+
+1) Class C, Unconfirmed
+mosquitto_pub -d -h 192.168.11.63 -t GIOT-GW/DL/00001c497bcab049 -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000001\",\"data\":\"abcdef12\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"22\"}}]" RX2
+1) Class C, confirmed
+mosquitto_pub -d -h 104.155.21.63 -t GIOT-GW/DL/00001c497bb44bbc -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000020\",\"data\":\"abcdef12\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"26\"}}]" RX2
+2) Class A, Unconfirmed
+mosquitto_pub -d -h 104.155.21.63 -t GIOT-GW/DL/00001c497bb44bbc -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000010\",\"data\":\"1234\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"2\"}}]" RX2
+3) Class A, confirmed
+mosquitto_pub -d -h 104.155.21.63 -t GIOT-GW/DL/00001c497bb44bbc -u lazyengineers -P lazyengineers -m "[{\"macAddr\":\"0000000000000020\",\"data\":\"1234\",\"id\":\"11111111111111\",\"extra\":{\"port\":1,\"txpara\":\"6\"}}]" RX2
+
+
+주파수 추가(NewChannelReq)
+
+922700000 => DATA: 07038CCAF850
+922900000 => DATA: 07048CD2C850
+923100000 => DATA: 07058CDA9850
+923300000 => DATA: 07068CE26850
+
+1) Class C, Unconfirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07038CCAF850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"22\"}}]"
+1) Class C, confirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07048CD2C850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"26\"}}]"
+1) Class A, Unconfirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07058CDA9850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"2\"}}]"
+1) Class A, confirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07038CCAF850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"6\"}}]"
+
+Data Rate 설정(LinkADRReq)
+0-1 channel SF9, power 6dB, ChMaskCntl: 0, NbTrans: 1 : 0333000301
+1-7 channel SF12, power 14dB, ChMaskCntl: 0, NbTrans: 1 : 030000FF01
+1-7 channel SF12, power 7dB, ChMaskCntl: 0, NbTrans: 1 : 030700FF01
+
+1) Class C, Unconfirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"030700FF01\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"22\"}}]"
+1) Class C, confirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07048CD2C850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"26\"}}]"
+1) Class A, Unconfirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07058CDA9850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"2\"}}]"
+1) Class A, confirmed
+mosquitto_pub -d -p 8883 --insecure --cafile certs\m2mqtt_srv.crt -t GIOT-GW/DL/00001c497bcab079 -u admin -P admin -m "[{\"macAddr\":\"0000000014111110\",\"data\":\"07038CCAF850\",\"id\":\"11111111111111\",\"extra\":{\"port\":0,\"txpara\":\"6\"}}]"
+
+LRW 30 abp 인증방식 변경
+LRW 66 1111000f device address (abp) 설정
+LRW 67 00000000000000000000000000000000 network session key 설정
+LRW 68 00000000000000000000000000000000 application session key 설정
+LRW 31 a1b2c3 cnf 1 데이터보내기
