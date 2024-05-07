@@ -32,7 +32,7 @@ Data           DevAddr:<value>    NetID:<value>
  *
  *   - Ex) LRW 30 otaa
  */
-void LoRa_SetActivationMode(uint8_t *opt)
+void LoRa_SetActivationMode(char *opt)
 {
   /*
    * Execution Return Message
@@ -41,7 +41,7 @@ void LoRa_SetActivationMode(uint8_t *opt)
    */
 #if 0
   Serial5.print("LRW 30 ");
-  Serial5.print((uint8_t *)opt);		                  /* "otaa" or "abp"  */
+  Serial5.print((char *)opt);		                  /* "otaa" or "abp"  */
   Serial5.print("\r\n");
 #else
   Serial5.printf("LRW 30 %s\r\n", opt);    /* "otaa" or "abp"  */
@@ -70,7 +70,7 @@ void LoRa_SetActivationMode(uint8_t *opt)
  *
  *   - Ex) LRW 31 adcd 1234 cnf 1
  */
-void LoRa_TXMsg(uint8_t *opt1, uint8_t opt2, uint8_t opt3)
+void LoRa_TXMsg(char *opt1, uint8_t opt2, uint8_t opt3)
 {
   /*
    * Execution Return Message

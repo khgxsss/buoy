@@ -123,6 +123,16 @@ HardwareSerial Serial5(UART5);
 /****************************************************************************
 *       Global Variable Definitions
 *****************************************************************************/
+
+uint8_t networkSessionKey[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t applicationSessionKey[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t deviceAddressABP[4] = {0x11, 0x11, 0x00, 0x0f};
+
+uint8_t otaa[] = {'o', 't', 'a', 'a'};
+uint8_t abp[] = {'a', 'b', 'p'};
+
 typedef enum
 {
     TIME_1MS          = 1,
@@ -310,8 +320,7 @@ typedef enum {
 	cmp_3rd,
 	cmp_4th,
 	cmp_5th,
-	cmp_6th,
-  cmp_44th
+	cmp_6th
 }mStateValue;
 
 typedef union RunningStatus
@@ -336,6 +345,8 @@ typedef union RunningStatus
       uint16_t st_finish         :1;
       uint16_t st_gps_mon        :1;
       uint16_t st_rsvd1          :1;
+
+      uint16_t st_activation_mode:1; // true : otaa, false : abp
     }b;
 }t_RunningStatus;
 

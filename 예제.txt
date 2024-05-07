@@ -93,4 +93,17 @@ LRW 30 abp 인증방식 변경
 LRW 66 1111000f device address (abp) 설정
 LRW 67 00000000000000000000000000000000 network session key 설정
 LRW 68 00000000000000000000000000000000 application session key 설정
-LRW 31 a1b2c3 cnf 1 데이터보내기
+LRW 31 a1b2c1 cnf 1 데이터보내기
+
+// LRW 30 abp 
+LoRa_SetActivationMode("abp"); delay(5);
+// LRW 66 1111000f device address (abp) 
+LoRa_SetDeviceAddress(deviceAddressABP); delay(5);
+// LRW 67 00000000000000000000000000000000 network session key 
+LoRa_SetNetworkSessionKey(networkSessionKey); delay(5);
+// LRW 68 00000000000000000000000000000000 application session key 
+LoRa_SetApplicationSessionKey(applicationSessionKey); delay(5);
+// LRW 31 a1b2c3 cnf 1 
+LoRa_TXbinary(0x01, 0x46, 31, sndData[0]);
+
+get devaddress AT+LRW 6A

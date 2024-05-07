@@ -62,8 +62,6 @@ uint16_t gpsDetectCount = 0;
 
 bool powerOnLora, atCmdMode;
 
-bool onTimeCheck = false; //@@kdh
-unsigned long onTimeCheckEndTime = 0; //@@kdh
 bool buoyInit = true; //@@kdh
 // strcpy -> strlcpy @@kdh
 
@@ -267,6 +265,8 @@ void setup()
     Serial3.printf("\r\n@@ Random delay before network Join : %d msec. ", 6903); //@@adh
     delay(6903);  //@@adh
   #endif
+  
+  LoRa_SetActivationMode("abp"); 
 
   
 } // end of setup()
@@ -302,7 +302,10 @@ void loop()
         Serial3.print(calculationV);
         Serial3.println(" V]");
       #endif
-
+      if (!cRun.runSt.b.st_activation_mode){ // abp mode
+        cRun.curRunMode = cmp_run;
+        break;
+      }
       cRun.curRunMode = cmp_3rd;
       gpsDetectCount = 0;
 
@@ -357,9 +360,6 @@ void loop()
       cRun.curRunMode = cmp_5th;
 	    break;
 
-    case cmp_44th:
-      break;
-
 
     case cmp_5th:
       int sameRssiIndex[8], minrssi, mincount, selectIndex;
@@ -375,11 +375,15 @@ void loop()
 
     case cmp_6th:
       ANT_Control(WISOL_ANT_SELECT);
-
       LoRa_WakeUp();
       delay(1);
       LoRa_TXbinary(0x01, 0x46, 31, sndData[0]);
       buoyDat[0].detail.buoyId.sequenceNo++;
+      if (!cRun.runSt.b.st_activation_mode){ // abp mode
+        LoRa_SetActivationMode("otaa");
+      }else { // otaa mode
+        LoRa_SetActivationMode("abp");
+      }
       cRun.curRunMode = cmp_run;
       break;
 
@@ -542,7 +546,7 @@ void loop()
 
   if (cRun.runSt.b.st_finish == true)
   {
-    if ( (millis() - cRun.finishMillis) > 120000 ) // TIME_2MIN
+    if ( (millis() - cRun.finishMillis) > 30000 ) // TIME_2MIN
     {
       cRun.runSt.b.st_finish = false;
 
@@ -600,7 +604,7 @@ void serialEvent3() {
       if (inputCnt3 > 0)
       {
         Serial3.print(" \b");
-//        Serial3.print(inChar);
+        Serial3.print(inChar);
         inStr3[inputCnt3--] = 0x00;
       }
     }
@@ -620,37 +624,23 @@ void serialEvent3() {
 #if _Include_Serial5_
 void serialEvent5()
 {
-  unsigned int millis_clk = 0; // @@kdh
-  unsigned int millis_fs = 0; // @@kdh
-
   while (Serial5.available()) {
     // get the new byte:
     char inChar = (char)Serial5.read();
-    if (!onTimeCheck && millis() - onTimeCheckEndTime > 1000) {//@@kdh
-      Serial3.print(inChar);
-    }
+    Serial3.print(inChar);
 
     // add it to the inputString:
     inStr5[inputCnt5++] = inChar;
     // if the incoming character is a newline
     if (inChar == '\n') {
-      stringComplete5 = true;
-
-      if (onTimeCheck){ // @@kdh
-        inStr5[inputCnt5] = '\0'; // null-terminate the string
-        // Check if the string contains the time sync message
-        if (strstr(inStr5, "ProcessMacCommands: SRV_MAC_TIME_SYNC_ANS") != NULL) {
-          sscanf(inStr5, "ProcessMacCommands: SRV_MAC_TIME_SYNC_ANS: S %u FS %u", &millis_clk, &millis_fs);
-          // Serial3.printf("Extracted Time Sync Value: %u, FS Value: %u\n", millis_clk, millis_fs);
-          processTimeSyncValues(millis_clk, millis_fs);
-          // clear the clock
-          millis_clk = 0;
-          millis_fs = 0;
-        }
-        // clear the string:
-        memset(inStr5, 0, sizeof(inStr5));
-        inputCnt5 = 0;
+      inStr5[inputCnt5] = '\0'; // null-terminate the string
+      // Check if the string contains the time sync message
+      if (strstr(inStr5, "ABP") != NULL) {
+        cRun.runSt.b.st_activation_mode = 0;
+      }else if (strstr(inStr5, "OTAA") != NULL) {
+        cRun.runSt.b.st_activation_mode = 1;
       }
+      stringComplete5 = true;
     }
   }
 }
@@ -1694,20 +1684,6 @@ bool LoRa_AT_Command(char *cmd)
     Serial2.print(cmd);
   }
 
-  if ( memcmp (cmd, "time", 4)==0 ) //@@kdh
-  {
-    onTimeCheck = true;
-    Serial3.printf("get_time_cmd_on\n");
-    #if __SERIAL5_PRINT__
-      Serial5.begin(LoRaBaudDat);	  // for SKT LoRa
-      while (!Serial5);
-        ANT_Control(WISOL_ANT_SELECT);
-        LoRa_WakeUp();
-        Serial5.print("LRW 39\r\n");
-    #endif
-    ret = true;
-  }
-
   return ret;
 }// End of bool LoRa_AT_Command(char *cmd)
 
@@ -1726,6 +1702,8 @@ uint8_t LoRa_retDataCompare(char *inData)
   }
   if(cmpSt)
   {
+    // Serial3.println("ROT");
+    // Serial3.println(rot);
     switch(rot)
     {
       case 0:         // "OK"
@@ -2415,30 +2393,3 @@ uint8_t atoh(char *str)
 
   return ret;
 } // End of uint8_t atoh(char *str)
-
-void processTimeSyncValues(unsigned long long millis_clk, unsigned int millis_fs) { //@@kdh
-    // UTC+9 시간대로 변환
-    millis_clk += 32400; // 9시간을 초로 변환
-
-    // 1970년 기준 초로 변환 (1980년 1월 6일 0시 0분 0초 부터의 초)
-    time_t totalSeconds = millis_clk + 315964800; 
-
-    // tm 구조체를 사용하여 연, 월, 일, 시, 분, 초 계산
-    struct tm *dateTime;
-    dateTime = gmtime(&totalSeconds);
-
-    // 밀리세컨드 계산 (9자리 숫자로 확장)
-    unsigned long long milliseconds = static_cast<unsigned long long>(millis_fs) * 1000000000 / (pow(2, 16) - 1);
-
-    // 결과를 Serial3을 통해 출력
-    Serial3.printf("\r\ncurrent time: %04d-%02d-%02d %02d:%02d:%02d.%09u\r\n\r\n",
-                   dateTime->tm_year + 1900, 
-                   dateTime->tm_mon + 1, 
-                   dateTime->tm_mday, 
-                   dateTime->tm_hour, 
-                   dateTime->tm_min, 
-                   dateTime->tm_sec,
-                   milliseconds);
-    onTimeCheckEndTime = millis();
-    onTimeCheck = false;
-} // End of processTimeSyncValues(unsigned long long, unsigned int)
