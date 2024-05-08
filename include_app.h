@@ -130,9 +130,6 @@ uint8_t applicationSessionKey[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0
                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t deviceAddressABP[4] = {0x11, 0x11, 0x00, 0x0f};
 
-uint8_t otaa[] = {'o', 't', 'a', 'a'};
-uint8_t abp[] = {'a', 'b', 'p'};
-
 typedef enum
 {
     TIME_1MS          = 1,
@@ -320,7 +317,9 @@ typedef enum {
 	cmp_3rd,
 	cmp_4th,
 	cmp_5th,
-	cmp_6th
+	cmp_6th,
+  cmp_abp_1st,
+  cmp_abp_2nd
 }mStateValue;
 
 typedef union RunningStatus

@@ -62,26 +62,6 @@ uint16_t gpsDetectCount = 0;
 
 bool powerOnLora, atCmdMode;
 
-bool buoyInit = true; //@@kdh
-// strcpy -> strlcpy @@kdh
-
-/***********************************************************************************************************************
-* Function Name: buoyRunInit
-* Description  : This function runs after READY.
-* Arguments    : None
-* Return Value : None
-***********************************************************************************************************************/
-
-void buoyRunInit(){
-  /******* automatic buoy run @@kdh*******/
-  if (buoyInit){
-    buoyInit = false;
-    // LoRa_AT_Command("buoy run\r\n");
-    atCmdMode = false;
-    cRun.curRunMode = cmp_1st;
-  }
-} // end of buoyRunInit
-
 /***********************************************************************************************************************
 * Function Name: setup
 * Description  : This function implements main function.
@@ -115,7 +95,7 @@ void setup()
   memset(inStr5, 0x00, UART5_INPUT_BUFFER_SIZE);
 
   Serial3.println("\r\n=======================");
-  Serial3.println(" BUOY Device Ver.0.1.0");
+  Serial3.println(" BUOY Device Ver.0.2.0");
   Serial3.println(" by RCN Co., LTD.");
   Serial3.println(" LoRa Module : SEONGJI LOM202A00 v2.04");
 
@@ -252,8 +232,9 @@ void setup()
 
   ANT_Control(WISOL_ANT_SELECT);
   LoRa_PowerControl(true);
-  LoRa_Reset();
-
+  LoRa_AT_Command("at+LRW 30 otaa\r\n");
+  // LoRa_Reset();
+  cRun.runSt.b.st_activation_mode = 1;
   
   // LoRa_WakeUp();
   #if 0
@@ -266,8 +247,6 @@ void setup()
     delay(6903);  //@@adh
   #endif
   
-  LoRa_SetActivationMode("abp"); 
-
   
 } // end of setup()
 
@@ -302,10 +281,6 @@ void loop()
         Serial3.print(calculationV);
         Serial3.println(" V]");
       #endif
-      if (!cRun.runSt.b.st_activation_mode){ // abp mode
-        cRun.curRunMode = cmp_run;
-        break;
-      }
       cRun.curRunMode = cmp_3rd;
       gpsDetectCount = 0;
 
@@ -378,12 +353,22 @@ void loop()
       LoRa_WakeUp();
       delay(1);
       LoRa_TXbinary(0x01, 0x46, 31, sndData[0]);
+      // buoyDat[0].detail.buoyId.sequenceNo++;
+      cRun.curRunMode = cmp_run;
+      break;
+    
+    case cmp_abp_1st:
+      ANT_Control(WISOL_ANT_SELECT);
+      LoRa_WakeUp();
+      delay(1);
+      LoRa_TXbinary(0x01, 0x46, 31, sndData[0]);
       buoyDat[0].detail.buoyId.sequenceNo++;
-      if (!cRun.runSt.b.st_activation_mode){ // abp mode
-        LoRa_SetActivationMode("otaa");
-      }else { // otaa mode
-        LoRa_SetActivationMode("abp");
-      }
+      cRun.curRunMode = cmp_abp_2nd;
+      break;
+    
+    case cmp_abp_2nd:
+      cRun.runSt.b.st_finish = true;
+      cRun.finishMillis = millis(); // one cycle finished
       cRun.curRunMode = cmp_run;
       break;
 
@@ -546,8 +531,9 @@ void loop()
 
   if (cRun.runSt.b.st_finish == true)
   {
-    if ( (millis() - cRun.finishMillis) > 30000 ) // TIME_2MIN
+    if ( (millis() - cRun.finishMillis) > 120000 ) // TIME_2MIN
     {
+      Serial3.printf("\n\nnew cycle start\n\r\n");
       cRun.runSt.b.st_finish = false;
 
       // Serial5.begin(LoRaBaudDat);	  // for SKT LoRa
@@ -558,7 +544,6 @@ void loop()
         Serial3.println("");
 
         LoRa_DataInit();
-
         cRun.curRunMode = cmp_1st;
       }
       else
@@ -1346,7 +1331,7 @@ bool LoRa_AT_Command(char *cmd)
     {
       Serial3.println("[Req CMD: BUOY STOP!]");
 
-	  atCmdMode = true;
+	    atCmdMode = true;
       cRun.curRunMode = cmp_stop;
       ret = true;
     }
@@ -1702,8 +1687,7 @@ uint8_t LoRa_retDataCompare(char *inData)
   }
   if(cmpSt)
   {
-    // Serial3.println("ROT");
-    // Serial3.println(rot);
+    // Serial3.printf("ROT %d \n",rot);
     switch(rot)
     {
       case 0:         // "OK"
@@ -1734,7 +1718,7 @@ uint8_t LoRa_retDataCompare(char *inData)
 
           //Serial3.printf("[%d.%d.%d]\r\n", buoyDat[0].detail.timeInfo.yearMon.b.year, buoyDat[0].detail.timeInfo.yearMon.b.month, buoyDat[0].detail.timeInfo.dateHourMin.b.day);
           //Serial3.printf("[%d.%d.%d]\r\n", buoyDat[0].detail.timeInfo.dateHourMin.b.hour, buoyDat[0].detail.timeInfo.dateHourMin.b.minute, buoyDat[0].detail.timeInfo.second.b.sec);
-          Serial3.printf("[UL MSG SEQ number Fcnt:: %d]\r\n", buoyDat[0].detail.buoyId.sequenceNo); // ** Sequenc Number **//
+          // Serial3.printf("[UL MSG SEQ number Fcnt:: %d]\r\n", buoyDat[0].detail.buoyId.sequenceNo); // ** Sequenc Number **//
           //Serial3.printf("Done!\r\n");
 
           Serial3.printf("\r\n");
@@ -1742,9 +1726,19 @@ uint8_t LoRa_retDataCompare(char *inData)
           //Serial3.print(" ");
           //Serial3.printf("Time:: ");
           //Serial3.println(__TIME__);
-
-          cRun.runSt.b.st_finish = true;
-          cRun.finishMillis = millis();
+          
+          if (!cRun.runSt.b.st_activation_mode){ // abp mode
+            Serial3.printf("\n\n[UL MSG SEQ number Fcnt:: %d]\r\n", buoyDat[0].detail.buoyId.sequenceNo); // ** Sequenc Number **//
+            Serial3.printf("\nabp to otaa\n\r\n");
+            // LoRa_SetActivationMode("otaa");
+            // Serial5.print("LRW 30 otaa\r\n");
+            LoRa_AT_Command("at+LRW 30 otaa\r\n");
+          }else { // otaa mode
+            Serial3.println("otaa to abp");
+            // LoRa_SetActivationMode("abp");
+            // Serial5.print("LRW 30 abp\r\n");
+            LoRa_AT_Command("at+LRW 30 abp\r\n");
+          }
         }
         else
         {
@@ -1764,9 +1758,11 @@ uint8_t LoRa_retDataCompare(char *inData)
               LoRa_WakeUp();
               LoRa_GetLastRssiSnr();
             }
+            if (!cRun.runSt.b.st_activation_mode){ // abp mode
+              cRun.curRunMode = cmp_abp_1st;
+            }
           }
         }
-        buoyRunInit(); //@@kdh
         break;
 
       case 4:         // "Wisol LoRa"
@@ -1862,6 +1858,7 @@ uint8_t LoRa_retDataCompare(char *inData)
         if (atCmdMode == true){}
         else
         {
+          Serial3.println("atCmdMode false");
           cRun.curRunMode = cmp_5th;
         }
         break;

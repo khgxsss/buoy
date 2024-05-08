@@ -44,7 +44,7 @@ void LoRa_SetActivationMode(char *opt)
   Serial5.print((char *)opt);		                  /* "otaa" or "abp"  */
   Serial5.print("\r\n");
 #else
-  Serial5.printf("LRW 30 %s\r\n", opt);    /* "otaa" or "abp"  */
+  Serial5.printf("LRW 30 %s\r\n", (char *)opt);    /* "otaa" or "abp"  */
 #endif
 }
 
